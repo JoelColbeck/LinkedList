@@ -15,7 +15,7 @@ class LinkedListTests: XCTestCase {
 
     override func setUpWithError() throws {
         array = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-        intLinkedList = .init(AnyCollection(array))
+        intLinkedList = .init(array)
     }
 
     override func tearDownWithError() throws {
@@ -23,17 +23,15 @@ class LinkedListTests: XCTestCase {
     }
     
     func testCreationFromArray() {
-        let collection = AnyCollection(array)
-        let list = LinkedList<Int>(collection)
-        
-        for index in 0 ..< collection.count {
-            XCTAssert(list[index] == array[index])
+        for index in 0 ..< array.count {
+            XCTAssert(intLinkedList[index] == array[index])
         }
+        
+        XCTAssert(intLinkedList.count == array.count)
     }
     
     func testCreateFromEmptyArray() {
-        let collection = AnyCollection([Int]())
-        let list = LinkedList<Int>(collection)
+        let list = LinkedList<Int>([])
         
         XCTAssert(list.first == nil)
         XCTAssert(list.last == nil)

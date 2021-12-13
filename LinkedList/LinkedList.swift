@@ -20,7 +20,7 @@ public struct LinkedList<Element> {
     // MARK: - Inits
     
     /// Creates a linked list object from AnyCollection object. Complexity O(n)
-    public init(_ collection: AnyCollection<Element>) {
+    public init<C: Collection>(_ collection: C) where C.Element == Element {
         guard let firstCollection = collection.first else { return }
         self.firstItem = ListNode(firstCollection)
         
@@ -67,16 +67,6 @@ public struct LinkedListIterator<Element>: IteratorProtocol {
         current = linkedList.firstItem
         
         return current?.value
-    }
-}
-
-extension LinkedList: Sequence {
-    public typealias Element = Element
-    
-    public func makeIterator() -> LinkedListIterator<Element> {
-        let iterator = LinkedListIterator(linkedList: self)
-
-        return iterator
     }
 }
 
