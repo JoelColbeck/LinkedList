@@ -7,94 +7,135 @@
 
 import Foundation
 
-public struct LinkedList<Base> {
+public struct LinkedList<Element> {
     
-    // MARK: - Public Properties
-    public var first: Base? {
-        firstElement?.value
-    }
+    /// First item of linked list
+    var firstItem: ListNode<Element>?
     
-    public var last: Base? {
-        lastElement?.value
-    }
-    
-    public var count = 0
-    
-    // MARK: - Private Properties
-    private var firstElement: ListElement<Base>?
-    
-    private var lastElement: ListElement<Base>? {
-        var obj = firstElement
-        
-        while let next = obj?.next {
-            obj = next
-        }
-        
-        return obj
+    /// Last item of linked list. Complexity O(n)
+    var lastElement: ListNode<Element>? {
+        self[listElementAt: count - 1]
     }
     
     // MARK: - Inits
-    init(_ collection: AnyCollection<Base> = AnyCollection([])) {
+    
+    /// Creates a linked list object from AnyCollection object. Complexity O(n)
+    public init(_ collection: AnyCollection<Element>) {
         guard let firstCollection = collection.first else { return }
-        self.firstElement = ListElement(firstCollection)
+        self.firstItem = ListNode(firstCollection)
         
-        var obj = self.firstElement
+        var obj = self.firstItem
         
         for element in collection.suffix(collection.count - 1) {
-            obj?.next = ListElement(element)
+            obj?.next = ListNode(element)
             obj = obj?.next
         }
-        
-        count = collection.count
     }
     
-    init(_ firstElement: Base) {
-        self.firstElement = ListElement(firstElement)
-        count += 1
+    /// Creates a linked list object with one element
+    public init(_ firstElement: Element) {
+        self.firstItem = ListNode(firstElement)
     }
     
-    // MARK: - Public Methods
-    public func append(_ item: Base) {
-        lastElement?.next = ListElement(item)
-    }
-    
-    public func insert(_ item: Base, at index: Int) {
-        let insertedObject = ListElement(item)
-        
-    }
-    
-    public subscript(index: Int) -> Base? {
-        get {
-            var obj = firstElement
-            
-            for _ in 0...index {
-                obj = obj?.next
-            }
-            
-            return obj?.value
-        }
-    }
+    public init() { }
     
     // MARK: - Private Methods
-    private subscript(listElementAt index: Int) -> ListElement<Base>? {
+    private subscript(listElementAt index: Int) -> ListNode<Element>? {
         get {
-            var obj = firstElement
+            var obj = firstItem
             
-            for _ in 0...index {
+            for _ in 0..<index {
                 obj = obj?.next
             }
             
             return obj
         }
     }
-    
 }
 
-fileprivate final class ListElement<Base> {
-    let value: Base
-    var next: ListElement<Base>?
+public struct LinkedListIterator<Element>: IteratorProtocol {
+    let linkedList: LinkedList<Element>
     
-    init(_ value: Base) {
-        self.value = value
+    var current: ListNode<Element>?
+    
+    public mutating func next() -> Element? {
+        if let current = current {
+            self.current = current.next
+            return current.next?.value
+        }
+        
+        current = linkedList.firstItem
+        
+        return current?.value
+    }
+}
+
+extension LinkedList: Sequence {
+    public typealias Element = Element
+    
+    public func makeIterator() -> LinkedListIterator<Element> {
+        let iterator = LinkedListIterator(linkedList: self)
+
+        return iterator
+    }
+}
+
+extension LinkedList: Collection {
+    
+    public var startIndex: Int { 0 }
+    
+    /// Complexity O(n)
+    public var endIndex: Int {
+        var result = 0
+        var current = firstItem
+        
+        while current != nil {
+            result += 1
+            current = current?.next
+        }
+        
+        return result
+    }
+    
+    public func index(after i: Int) -> Int { i + 1 }
+}
+
+extension LinkedList: BidirectionalCollection {
+    public func index(before i: Int) -> Int { i - 1 }
+}
+
+extension LinkedList: MutableCollection {
+    
+    public subscript(position: Int) -> Element {
+        get {
+            self[listElementAt: position]!.value
+        }
+        
+        set {
+            self[listElementAt: position]?.value = newValue
+        }
+    }
+}
+
+extension LinkedList: RangeReplaceableCollection {
+    
+    public mutating func replaceSubrange<C>(
+        _ subrange: Range<Int>,
+        with newElements: C
+    ) where C : Collection, Element == C.Element {
+        let leftIndex = subrange.lowerBound
+        let rightIndex = subrange.upperBound
+        
+        let leftElem = self[listElementAt: leftIndex - 1]
+        let rightElem = self[listElementAt: rightIndex]
+        var current = leftElem
+        
+        for element in newElements {
+            let newItem = ListNode(element)
+            current?.next = newItem
+            current = newItem
+        }
+        
+        current?.next = rightElem
     }
 }
